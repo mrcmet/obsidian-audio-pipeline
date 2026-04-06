@@ -1,0 +1,123 @@
+# =============================================================================
+# Obsidian Audio Pipeline — Configuration
+# =============================================================================
+# After editing, restart the service for changes to take effect.
+# Paths support ~ for your home directory.
+
+# ---------------------------------------------------------------------------
+# Watch folder — drop audio files here to trigger processing
+# REQUIRED: create this folder and update this path
+# ---------------------------------------------------------------------------
+watch_folder: ~/Library/Mobile Documents/com~apple~CloudDocs/Audio Notes
+
+# ---------------------------------------------------------------------------
+# Obsidian vault inbox — where finished .md notes are written
+# REQUIRED: must be a folder that already exists inside your vault
+# ---------------------------------------------------------------------------
+obsidian_vault_folder: ~/Documents/Obsidian Vaults/Atlas/Clippings
+
+# ---------------------------------------------------------------------------
+# Archive folder — where audio files are moved after successful processing
+# Only used when on_complete.audio_file_action is "archive"
+# ---------------------------------------------------------------------------
+archive_folder: ~/Desktop/AudioDrop/processed
+
+# =============================================================================
+# Transcription
+# =============================================================================
+transcriber:
+  # backend options:
+  #   faster-whisper  — local inference, no API cost, requires enough RAM
+  #   openai-api      — cloud Whisper via OpenAI, requires OPENAI_API_KEY
+  backend: faster-whisper
+
+  # Whisper model size (faster-whisper backend only).
+  # Tradeoff: larger = more accurate, slower, more RAM.
+  #   tiny    ~1 GB RAM, fastest, least accurate
+  #   base    ~1 GB RAM, good balance for most voices  ← recommended default
+  #   small   ~2 GB RAM, noticeably better on accents and proper nouns
+  #   medium  ~4 GB RAM
+  #   large-v3  ~8 GB RAM, best accuracy
+  model: base
+
+  # Language hint for Whisper. null = auto-detect (slightly slower).
+  # Use an ISO 639-1 code to force a language: "en", "fr", "de", "es", etc.
+  language: "en"
+
+  # Compute device for faster-whisper backend.
+  #   auto  — use CUDA if available, else CPU
+  #   cpu   — force CPU (always works, slower on long recordings)
+  #   cuda  — force GPU (requires compatible NVIDIA card + drivers)
+  device: auto
+
+# =============================================================================
+# LLM — transcript → structured note data
+# =============================================================================
+llm:
+  # backend options:
+  #   anthropic  — Claude models via Anthropic API (recommended)
+  #   openai     — GPT models via OpenAI API
+  #   ollama     — local models via Ollama (no API key needed)
+  backend: ollama
+
+  # Model name for the chosen backend. Examples:
+  #   anthropic:  claude-opus-4-6, claude-3-5-sonnet-20241022, claude-3-haiku-20240307
+  #   openai:     gpt-4o, gpt-4o-mini, gpt-4-turbo
+  #   ollama:     llama3.1, mistral, gemma2
+  model: gpt-oss:20b
+
+  # Name of the environment variable that holds your API key.
+  # The pipeline reads os.environ[api_key_env] at runtime — never put the key here.
+  #   anthropic backend → set ANTHROPIC_API_KEY in your shell or launchd plist
+  #   openai backend    → set OPENAI_API_KEY
+  #   ollama backend    → leave as-is (no key needed)
+  api_key_env: ANTHROPIC_API_KEY
+
+# =============================================================================
+# Note output
+# =============================================================================
+note:
+  # Path to a custom Jinja2 template (.j2) that controls note layout.
+  # null = use the built-in default template (see note_writer.py for its source).
+  # See docs/customization.md for all available template variables.
+  template_file: null
+
+  # Tags used when vault scanning fails (vault unreachable, empty, etc.).
+  # These are plain Obsidian tag names — no # prefix.
+  fallback_tags:
+    - meeting
+    - notes
+    - audio
+
+  # Freeform instructions appended verbatim to the LLM's system prompt.
+  # Use this to tune extraction style without touching any code.
+  # Examples:
+  #   "Write the summary as bullet points, not prose."
+  #   "Format people's full names as [[First Last]] wikilinks."
+  #   "Add an 'Open Questions' section for anything left unresolved."
+  custom_prompt_instructions: "Format people's full names as [[First Last]] wikilinks."
+
+  # Whether to append the full transcript to the note.
+  include_full_transcript: true
+
+  # Whether to wrap the transcript in a <details> collapse block.
+  # Only relevant when include_full_transcript is true.
+  collapse_transcript: true
+
+  # Subfolder created inside obsidian_vault_folder for the note.
+  # Supports {year}, {month}, {day} placeholders (derived from recording time).
+  # Examples:
+  #   "{year}/{month}"   →  Inbox/2026/04/
+  #   "{year}"           →  Inbox/2026/
+  #   ""                 →  notes go directly into obsidian_vault_folder
+  subfolder_pattern: ""
+
+# =============================================================================
+# Post-processing
+# =============================================================================
+on_complete:
+  # What to do with the source audio file after a successful pipeline run.
+  #   archive  — move to archive_folder (safe default)
+  #   delete   — permanently delete the file
+  #   leave    — do nothing (file stays in watch_folder)
+  audio_file_action: leave

@@ -1,0 +1,7 @@
+watchdog
+faster-whisper
+anthropic
+openai
+jinja2
+pyyaml
+python-frontmatter

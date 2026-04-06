@@ -1,0 +1,32 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Logs
+pipeline.log
+*.log
+
+# Environment / secrets
+.env
+.env.local
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Whisper model cache (downloaded at runtime)
+.cache/
+
+# config.yaml contains personal paths — gitignore and use config.example.yaml for sharing
+# Comment this out if you want to track your config in a private repo
+# config.yaml
