@@ -196,6 +196,44 @@ class AudioFileHandler(FileSystemEventHandler):
 
 
 # ---------------------------------------------------------------------------
+# Startup catch-up scan
+# ---------------------------------------------------------------------------
+
+def _scan_for_missed_files(watch_folder: Path, handler: AudioFileHandler) -> None:
+    """
+    Queue any audio files already in *watch_folder* that were not processed
+    in a previous session.
+
+    Called once at startup before the watchdog observer begins.  Handles the
+    case where files arrived while the service was offline.  Files are sorted
+    by mtime (oldest first) so they are processed in arrival order.
+    """
+    from state import is_processed  # noqa: PLC0415
+
+    candidates: list[Path] = []
+    for path in watch_folder.iterdir():
+        if not path.is_file():
+            continue
+        if path.suffix.lower() not in AUDIO_EXTENSIONS:
+            continue
+        if not is_processed(path):
+            candidates.append(path)
+
+    if not candidates:
+        logger.info("Startup scan: no unprocessed files found")
+        return
+
+    candidates.sort(key=lambda p: p.stat().st_mtime)
+    logger.info(
+        "Startup scan: found %d unprocessed file(s) — queuing for processing",
+        len(candidates),
+    )
+    for path in candidates:
+        logger.info("  Queuing missed file: %s", path.name)
+        handler._handle_event(str(path))
+
+
+# ---------------------------------------------------------------------------
 # Public interface
 # ---------------------------------------------------------------------------
 
@@ -239,6 +277,7 @@ def start_watcher(config: dict) -> None:
     observer.start()
 
     logger.info("Watcher started — waiting for files (Ctrl+C to stop)")
+    _scan_for_missed_files(watch_folder, handler)
 
     try:
         while True:

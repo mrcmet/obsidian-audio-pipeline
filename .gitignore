@@ -13,6 +13,9 @@ build/
 pipeline.log
 *.log
 
+# Runtime state
+pipeline_state.json
+
 # Environment / secrets
 .env
 .env.local

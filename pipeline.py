@@ -86,6 +86,10 @@ def run_pipeline(audio_path: Path, config: dict) -> Path | None:
         note_path = render_and_write(note_data, audio_path, config)
         logger.info("Note written: %s", note_path)
 
+        # Persist before Stage 4 so the file still exists for stat().
+        from state import mark_processed  # noqa: PLC0415
+        mark_processed(audio_path)
+
         # Stage 4: Handle audio file -----------------------------------------
         logger.info("Stage 4/4 — Handling source audio file")
         _handle_audio_file(audio_path, config)
