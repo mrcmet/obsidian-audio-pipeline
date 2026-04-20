@@ -24,9 +24,12 @@ pipeline.log
 .vscode/
 .idea/
 
+# Claude Code local settings
+.claude/
+
 # Whisper model cache (downloaded at runtime)
 .cache/
 
 # config.yaml contains personal paths — gitignore and use config.example.yaml for sharing
 # Comment this out if you want to track your config in a private repo
-# config.yaml
+ config.yaml

@@ -1,5 +1,10 @@
 watchdog
 faster-whisper
+whisperx
+pyannote.audio>=3.1
+# torch is intentionally omitted — install.py installs the correct CUDA or CPU
+# variant first. Running 'pip install -r requirements.txt' directly will skip
+# torch; run 'python install.py' instead.
 anthropic
 openai
 jinja2

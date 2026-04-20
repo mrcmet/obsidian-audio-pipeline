@@ -29,6 +29,14 @@ _DEFAULTS: dict = {
         "model": "base",
         "language": None,
         "device": "auto",
+        "compute_type": "float16",
+        "batch_size": 16,
+        "diarization": {
+            "enabled": False,
+            "hf_token_env": "HF_TOKEN",
+            "min_speakers": None,
+            "max_speakers": None,
+        },
     },
     "llm": {
         "backend": "anthropic",
@@ -52,7 +60,7 @@ _DEFAULTS: dict = {
 # Validation constants
 # ---------------------------------------------------------------------------
 _VALID_LLM_BACKENDS = {"anthropic", "openai", "ollama"}
-_VALID_TRANSCRIBER_BACKENDS = {"faster-whisper", "openai-api"}
+_VALID_TRANSCRIBER_BACKENDS = {"faster-whisper", "openai-api", "whisperx"}
 _VALID_AUDIO_ACTIONS = {"archive", "delete", "leave"}
 
 # ---------------------------------------------------------------------------

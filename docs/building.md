@@ -22,13 +22,24 @@ python -m venv venv
 source venv/bin/activate        # Mac / Linux
 # venv\Scripts\activate         # Windows
 
-# 4. Install dependencies
-pip install -r requirements.txt
+# 4. Install dependencies (use install.py — NOT pip install -r requirements.txt directly)
+#    install.py auto-detects NVIDIA and installs the correct PyTorch variant first.
+python install.py
 
-# 5. Set API key
+# Override flags if needed:
+#   python install.py --cuda    # force CUDA install (skip GPU detection)
+#   python install.py --cpu     # force CPU-only (e.g. for CI or non-GPU machines)
+
+# 5. Set API key (only needed for anthropic/openai LLM backends)
 export ANTHROPIC_API_KEY="sk-ant-..."     # Mac/Linux
 # $env:ANTHROPIC_API_KEY = "sk-ant-..."  # Windows PowerShell
 ```
+
+> **Why `install.py` instead of `pip install -r requirements.txt`?**
+> PyTorch ships separate wheels for CUDA and CPU. The CUDA wheel must be fetched
+> from a custom index URL (`https://download.pytorch.org/whl/cu128`). `install.py`
+> detects NVIDIA via `nvidia-smi`, installs the right torch variant first, then
+> runs `requirements.txt` for everything else.
 
 ## Configuration
 

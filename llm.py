@@ -123,6 +123,9 @@ def _parse_llm_response(raw: str) -> dict:
     """
     text = raw.strip()
 
+    # Strip <think>...</think> blocks emitted by reasoning models (e.g. Qwen3).
+    text = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE).strip()
+
     # Strip markdown code fences: ```json ... ``` or ``` ... ```
     text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
     text = re.sub(r"\s*```$", "", text)
@@ -336,6 +339,10 @@ def _call_ollama(system_prompt: str, user_prompt: str, cfg: dict) -> str:
     payload = {
         "model": model,
         "stream": False,
+        "format": "json",  # Constrain output to valid JSON (Ollama native support)
+        "options": {
+            "temperature": cfg.get("temperature", 0),  # Deterministic for structured extraction
+        },
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
