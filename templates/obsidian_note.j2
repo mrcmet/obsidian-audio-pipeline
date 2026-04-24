@@ -1,0 +1,70 @@
+---
+title: "{{ title }}"
+date: {{ date }}
+time: {{ time }}
+audio_file: {{ audio_filename }}
+duration: {{ duration }}
+tags: [{{ tags | join(', ') }}]
+---
+
+# {{ title }}
+
+> {{ datetime_human }}{% if duration %} · {{ duration }}{% endif %} · `{{ audio_filename }}`
+
+{% if attendees %}
+**Attendees:** {% for name in attendees %}[[{{ name }}]]{% if not loop.last %}, {% endif %}{% endfor %}
+
+{% endif %}
+## Summary
+
+{{ summary }}
+
+{% if key_points %}
+## Key Points
+
+{% for point in key_points %}
+- {{ point }}
+{% endfor %}
+{% endif %}
+{% if todos %}
+## Action Items
+
+{% for todo in todos %}
+- [ ] {{ todo.task }}{% if todo.owner %} — *{{ todo.owner }}*{% endif %}{% if todo.due %} *(due: {{ todo.due }})*{% endif %}
+{% endfor %}
+
+{% endif %}
+{% if decisions %}
+## Decisions
+
+{% for decision in decisions %}
+- {{ decision }}
+{% endfor %}
+{% endif %}
+{% if follow_ups %}
+## Follow-ups
+
+{% for item in follow_ups %}
+- {{ item }}
+{% endfor %}
+{% endif %}
+{% for section_name, content in custom_sections.items() %}
+## {{ section_name }}
+
+{{ content }}
+
+{% endfor %}
+{% if include_transcript and transcript %}
+## Transcript
+
+{% if collapse_transcript %}
+<details>
+<summary>Full transcript</summary>
+
+{{ transcript }}
+
+</details>
+{% else %}
+{{ transcript }}
+{% endif %}
+{% endif %}

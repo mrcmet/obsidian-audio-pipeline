@@ -10,3 +10,7 @@ openai
 jinja2
 pyyaml
 python-frontmatter
+pystray
+# rumps is macOS-only (Mac menu bar / tray support)
+rumps; sys_platform == "darwin"
+Pillow
