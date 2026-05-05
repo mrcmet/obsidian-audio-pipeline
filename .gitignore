@@ -35,4 +35,4 @@ pipeline_state.json
 
 # config.yaml contains personal paths — gitignore and use config.example.yaml for sharing
 # Comment this out if you want to track your config in a private repo
- config.yaml
+config.yaml

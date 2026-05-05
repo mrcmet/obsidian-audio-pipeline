@@ -3,18 +3,22 @@
 # =============================================================================
 # After editing, restart the service for changes to take effect.
 # Paths support ~ for your home directory.
+#
+# SETUP: copy this file to config.yaml and fill in your paths.
+#   cp config.example.yaml config.yaml   (Mac/Linux)
+#   copy config.example.yaml config.yaml  (Windows)
 
 # ---------------------------------------------------------------------------
 # Watch folder — drop audio files here to trigger processing
 # REQUIRED: create this folder and update this path
 # ---------------------------------------------------------------------------
-watch_folder: ~/Library/Mobile Documents/com~apple~CloudDocs/Audio Notes
+watch_folder: ~/Desktop/AudioDrop
 
 # ---------------------------------------------------------------------------
 # Obsidian vault inbox — where finished .md notes are written
 # REQUIRED: must be a folder that already exists inside your vault
 # ---------------------------------------------------------------------------
-obsidian_vault_folder: ~/Documents/Obsidian Vaults/Atlas/Clippings
+obsidian_vault_folder: ~/Documents/Obsidian/Inbox
 
 # ---------------------------------------------------------------------------
 # Archive folder — where audio files are moved after successful processing
@@ -66,10 +70,13 @@ transcriber:
   #   1. Create token at https://huggingface.co/settings/tokens
   #   2. Accept terms at https://huggingface.co/pyannote/speaker-diarization-3.1
   #   3. Accept terms at https://huggingface.co/pyannote/segmentation-3.0
-  #   4. Set the env var named below: set HF_TOKEN=hf_...  (Windows)
+  #   4a. Set hf_token_env to the name of an env var holding your token (recommended):
+  #         hf_token_env: HF_TOKEN   then   set HF_TOKEN=hf_...  (Windows)
+  #   4b. Or paste the token value directly here (convenient, but keep config.yaml private):
+  #         hf_token_env: hf_YOUR_TOKEN_HERE
   diarization:
     enabled: false
-    hf_token_env: HF_TOKEN   # name of the env var holding your HuggingFace token
+    hf_token_env: HF_TOKEN   # env var name OR literal token starting with "hf_"
     min_speakers: null        # null = auto-detect number of speakers
     max_speakers: null        # null = auto-detect; set a cap (e.g. 4) for speed
 
@@ -81,13 +88,13 @@ llm:
   #   anthropic  — Claude models via Anthropic API (recommended)
   #   openai     — GPT models via OpenAI API
   #   ollama     — local models via Ollama (no API key needed)
-  backend: ollama
+  backend: anthropic
 
   # Model name for the chosen backend. Examples:
-  #   anthropic:  claude-opus-4-6, claude-3-5-sonnet-20241022, claude-3-haiku-20240307
-  #   openai:     gpt-4o, gpt-4o-mini, gpt-4-turbo
-  #   ollama:     llama3.1, mistral, gemma2
-  model: qwen3:32b
+  #   anthropic:  claude-sonnet-4-6, claude-haiku-4-5-20251001
+  #   openai:     gpt-4o, gpt-4o-mini
+  #   ollama:     llama3.1, mistral, qwen3:32b
+  model: claude-sonnet-4-6
 
   # Name of the environment variable that holds your API key.
   # The pipeline reads os.environ[api_key_env] at runtime — never put the key here.
@@ -118,7 +125,7 @@ note:
   #   "Write the summary as bullet points, not prose."
   #   "Format people's full names as [[First Last]] wikilinks."
   #   "Add an 'Open Questions' section for anything left unresolved."
-  custom_prompt_instructions: "Format people's full names as [[First Last]] wikilinks."
+  custom_prompt_instructions: ""
 
   # Whether to append the full transcript to the note.
   include_full_transcript: true
@@ -143,4 +150,4 @@ on_complete:
   #   archive  — move to archive_folder (safe default)
   #   delete   — permanently delete the file
   #   leave    — do nothing (file stays in watch_folder)
-  audio_file_action: leave
+  audio_file_action: archive
