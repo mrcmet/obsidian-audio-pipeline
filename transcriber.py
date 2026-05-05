@@ -212,7 +212,14 @@ def _transcribe_whisperx(
                 )
             else:
                 raise
-        audio = whisperx.load_audio(str(audio_path))
+        try:
+            audio = whisperx.load_audio(str(audio_path))
+        except FileNotFoundError as ffmpeg_exc:
+            raise RuntimeError(
+                "ffmpeg not found. WhisperX requires ffmpeg to decode audio.\n"
+                "Install it with:  winget install ffmpeg\n"
+                "Then restart the pipeline so the new PATH takes effect."
+            ) from ffmpeg_exc
         result = model.transcribe(audio, batch_size=batch_size)
 
         detected_language: str = result.get("language", language or "unknown")

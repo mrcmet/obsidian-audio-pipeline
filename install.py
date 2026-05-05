@@ -35,6 +35,14 @@ def _run(cmd: list[str]) -> None:
         sys.exit(result.returncode)
 
 
+def _has_ffmpeg() -> bool:
+    try:
+        r = subprocess.run(["ffmpeg", "-version"], capture_output=True, timeout=10)
+        return r.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
 def _has_nvidia() -> bool:
     try:
         r = subprocess.run(
@@ -172,6 +180,11 @@ def main() -> None:
         _run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 
     print("\nInstallation complete.")
+    if not _has_ffmpeg():
+        print("\n  WARNING: ffmpeg was not found on PATH.")
+        print("  WhisperX requires ffmpeg to decode audio files.")
+        print("  Install it with:  winget install ffmpeg")
+        print("  Then open a new terminal before running the pipeline.")
     print("Next: edit config.yaml with your paths, then run: python tray.py")
 
 
