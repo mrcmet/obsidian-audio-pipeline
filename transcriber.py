@@ -279,7 +279,11 @@ def _apply_diarization(
         ) from exc
 
     hf_token_env: str = diar_cfg.get("hf_token_env", "HF_TOKEN")
-    hf_token: str | None = os.environ.get(hf_token_env)
+    # Accept either a literal token (starts with "hf_") or an env var name
+    if hf_token_env.startswith("hf_"):
+        hf_token: str | None = hf_token_env
+    else:
+        hf_token = os.environ.get(hf_token_env)
     if not hf_token:
         raise RuntimeError(
             f"HuggingFace token not set. Export '{hf_token_env}' before running. "
@@ -294,15 +298,15 @@ def _apply_diarization(
         "Running speaker diarization (min=%s max=%s)", min_speakers, max_speakers
     )
 
-    diarize_model = whisperx.DiarizationPipeline(
-        use_auth_token=hf_token, device=device
+    diarize_model = whisperx.diarize.DiarizationPipeline(
+        token=hf_token, device=device
     )
     diarize_segments = diarize_model(
         audio,
         min_speakers=min_speakers,
         max_speakers=max_speakers,
     )
-    return whisperx.assign_word_speakers(diarize_segments, result)
+    return whisperx.diarize.assign_word_speakers(diarize_segments, result)
 
 
 def _format_diarized_transcript(segments: list[dict]) -> str:
