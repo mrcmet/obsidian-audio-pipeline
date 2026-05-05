@@ -147,19 +147,29 @@ def main() -> None:
         else:
             print("No NVIDIA GPU detected — installing CPU-only PyTorch.")
 
-    # Step 1: install torch with the correct variant.
+    # Step 1: install torch + torchaudio with the correct variant.
+    # torchaudio must come from the same index as torch so the CUDA builds match.
     if use_cuda:
         _run([
             sys.executable, "-m", "pip", "install",
-            "torch",
+            "torch", "torchaudio",
             "--index-url", _TORCH_INDEX_CUDA,
         ])
     else:
-        _run([sys.executable, "-m", "pip", "install", "torch"])
+        _run([sys.executable, "-m", "pip", "install", "torch", "torchaudio"])
 
     # Step 2: install everything else.
+    # On CUDA, pass --extra-index-url so pip won't downgrade torch/torchaudio
+    # back to the CPU PyPI wheels when resolving whisperx's dependencies.
     print("Installing remaining dependencies from requirements.txt ...")
-    _run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
+    if use_cuda:
+        _run([
+            sys.executable, "-m", "pip", "install",
+            "-r", "requirements.txt",
+            "--extra-index-url", _TORCH_INDEX_CUDA,
+        ])
+    else:
+        _run([sys.executable, "-m", "pip", "install", "-r", "requirements.txt"])
 
     print("\nInstallation complete.")
     print("Next: edit config.yaml with your paths, then run: python tray.py")

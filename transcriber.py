@@ -195,9 +195,23 @@ def _transcribe_whisperx(
     )
 
     try:
-        model = whisperx.load_model(
-            model_size, device, compute_type=compute_type, language=language
-        )
+        try:
+            model = whisperx.load_model(
+                model_size, device, compute_type=compute_type, language=language
+            )
+        except Exception as load_exc:
+            if device == "cuda":
+                logger.warning(
+                    "Failed to load WhisperX on CUDA (%s) — falling back to CPU/int8",
+                    load_exc,
+                )
+                device = "cpu"
+                compute_type = "int8"
+                model = whisperx.load_model(
+                    model_size, device, compute_type=compute_type, language=language
+                )
+            else:
+                raise
         audio = whisperx.load_audio(str(audio_path))
         result = model.transcribe(audio, batch_size=batch_size)
 

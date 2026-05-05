@@ -97,8 +97,12 @@ class _PipelineProcess:
                     self._restart_count = 0
                 return
 
-            # Process has exited unexpectedly.
+            # Process has exited.
             exit_code = self._proc.returncode
+            if exit_code == 0:
+                logger.info("Pipeline exited cleanly (code=0), not restarting.")
+                self._user_stopped = True
+                return
             logger.warning("Pipeline exited (code=%d), restart_count=%d", exit_code, self._restart_count)
 
             if self._restart_count >= _MAX_RESTARTS:
@@ -127,19 +131,13 @@ def _read_last_log_line() -> str:
 
 
 def _open_log_window_thread() -> None:
-    import tkinter as tk
     import log_window
-    root = tk.Tk()
-    log_window.open_log_window(root)
-    root.mainloop()
+    log_window.open_log_window()
 
 
 def _open_settings_window_thread() -> None:
-    import tkinter as tk
     import settings_window
-    root = tk.Tk()
-    settings_window.open_settings_window(root)
-    root.mainloop()
+    settings_window.open_settings_window()
 
 
 # ---------------------------------------------------------------------------
