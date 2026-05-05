@@ -93,6 +93,18 @@ needs no key.
 
 ## Configuration
 
+First, copy the example config to create your personal config file:
+
+**Mac / Linux:**
+```
+cp config.example.yaml config.yaml
+```
+
+**Windows:**
+```
+copy config.example.yaml config.yaml
+```
+
 Open `config.yaml` in any text editor. You must change two lines:
 
 ```yaml
@@ -201,7 +213,7 @@ download progress.
 
 ### Wrong vault path — note not appearing
 
-Verify the path in `config.yaml` points to a folder that actually exists inside Obsidian.
+Verify the path in your `config.yaml` points to a folder that actually exists inside Obsidian.
 The folder must exist; the pipeline does not create it.
 
 Test the path from a terminal:
