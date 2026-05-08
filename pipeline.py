@@ -103,9 +103,9 @@ def run_pipeline(audio_path: Path, config: dict) -> Path | None:
             exc,
             exc_info=True,
         )
-        # Remove from the processed set so a manual retry is possible without
-        # restarting the service.
         _processed.discard(audio_path)
+        from state import mark_failed  # noqa: PLC0415
+        mark_failed(audio_path)
         return None
 
 

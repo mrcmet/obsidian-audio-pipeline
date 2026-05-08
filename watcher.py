@@ -208,16 +208,29 @@ def _scan_for_missed_files(watch_folder: Path, handler: AudioFileHandler) -> Non
     case where files arrived while the service was offline.  Files are sorted
     by mtime (oldest first) so they are processed in arrival order.
     """
-    from state import is_processed  # noqa: PLC0415
+    from state import is_processed, is_failed  # noqa: PLC0415
 
     candidates: list[Path] = []
+    skipped_failed: list[str] = []
     for path in watch_folder.iterdir():
         if not path.is_file():
             continue
         if path.suffix.lower() not in AUDIO_EXTENSIONS:
             continue
-        if not is_processed(path):
-            candidates.append(path)
+        if is_processed(path):
+            continue
+        if is_failed(path):
+            skipped_failed.append(path.name)
+            continue
+        candidates.append(path)
+
+    if skipped_failed:
+        logger.warning(
+            "Startup scan: skipping %d previously-failed file(s) — run with "
+            "--retry-failed to re-queue them: %s",
+            len(skipped_failed),
+            ", ".join(skipped_failed),
+        )
 
     if not candidates:
         logger.info("Startup scan: no unprocessed files found")

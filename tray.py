@@ -77,11 +77,15 @@ class _PipelineProcess:
     def _launch(self) -> None:
         """Open the log file in append mode and start the subprocess. Must be called under lock."""
         log_fh = open(_LOG_FILE, "a", encoding="utf-8")
+        env = os.environ.copy()
+        env["PYTHONUTF8"] = "1"                       # force UTF-8 I/O; avoids cp1252 UnicodeEncodeError on Windows
+        env["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"  # suppress HF symlink noise on Windows
         self._proc = subprocess.Popen(
             [sys.executable, str(_MAIN_PY)],
             stdout=log_fh,
             stderr=log_fh,
             cwd=str(_BASE_DIR),
+            env=env,
         )
         self._start_time = time.monotonic()
         logger.info("Pipeline started (pid=%d)", self._proc.pid)

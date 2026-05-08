@@ -5,6 +5,7 @@ Run with:
     python main.py
 """
 
+import argparse
 import logging
 import sys
 from pathlib import Path
@@ -16,11 +17,22 @@ def _configure_logging() -> None:
     All pipeline modules use child loggers (logging.getLogger(__name__))
     so they inherit this configuration automatically.
     """
+    # Reconfigure stdout/stderr to UTF-8 for direct runs ("python main.py").
+    # When launched by tray.py, PYTHONUTF8=1 is set in the subprocess env
+    # instead — both paths avoid UnicodeEncodeError on Windows cp1252 consoles.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+
     log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     date_format = "%Y-%m-%d %H:%M:%S"
 
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
+
+    # Suppress one-time cosmetic noise from third-party libraries.
+    logging.getLogger("lightning.pytorch.utilities.migration.utils").setLevel(logging.ERROR)
 
     # Stdout handler — useful for interactive / foreground development
     stdout_handler = logging.StreamHandler(sys.stdout)
@@ -38,10 +50,23 @@ def _configure_logging() -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Obsidian Audio Pipeline")
+    parser.add_argument(
+        "--retry-failed",
+        action="store_true",
+        help="Clear failed-file records so they are re-queued on startup scan.",
+    )
+    args = parser.parse_args()
+
     _configure_logging()
 
     logger = logging.getLogger(__name__)
     logger.info("Obsidian Audio Pipeline starting up")
+
+    if args.retry_failed:
+        from state import clear_failed  # noqa: PLC0415
+        clear_failed()
+        logger.info("--retry-failed: cleared failed-file records — they will be re-queued")
 
     # Config must load before anything else — all modules receive it as a
     # parameter rather than importing it globally (convention from CLAUDE.md).

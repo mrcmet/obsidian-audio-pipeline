@@ -184,37 +184,30 @@ Issues identified from live log review. Ordered by impact.
 
 ### Should Fix
 
-- [ ] **Windows log encoding crash** — `UnicodeEncodeError: 'charmap' codec` causes
+- [x] **Windows log encoding crash** — `UnicodeEncodeError: 'charmap' codec` causes
   `--- Logging error ---` when log messages contain narrow non-breaking space (`\u202f`)
-  or other non-cp1252 chars (e.g. Whisper timestamps). Fix: open the `FileHandler` in
-  `main.py` with `encoding='utf-8'` and set `PYTHONUTF8=1` in the tray subprocess env.
+  or other non-cp1252 chars (e.g. Whisper timestamps). Fix: `sys.stdout.reconfigure(utf-8)`
+  in `main.py` for direct runs; `PYTHONUTF8=1` in tray subprocess env for tray-launched runs.
 
-- [ ] **`hf_xet` missing — slow model downloads** — HuggingFace warns every diarization
-  run that `hf_xet` is not installed and falls back to slower HTTP. Fix: add `hf_xet` to
-  `requirements.txt` and `install.py`.
+- [x] **`hf_xet` missing — slow model downloads** — HuggingFace warns every diarization
+  run that `hf_xet` is not installed and falls back to slower HTTP. Fix: added `hf_xet` to
+  `requirements.txt`.
 
-- [ ] **torchcodec/FFmpeg DLL warning on every run** — `libtorchcodec_core*.dll` not found
+- [x] **torchcodec/FFmpeg DLL warning on every run** — `libtorchcodec_core*.dll` not found
   because torchcodec ships its own FFmpeg-linked DLLs and can't find them. Whisperx falls
-  back silently, but the warning is noisy. Fix options (pick one):
-    - Pin `torchcodec` to a version compatible with PyTorch 2.8 + CUDA 12.8, OR
-    - Add a `warnings.filterwarnings` suppress in `transcriber.py` before importing whisperx,
-      since the fallback path works correctly.
+  back silently. Fix: `warnings.filterwarnings` suppress in `transcriber.py`.
 
-- [ ] **Failed files stuck in state** — Files that failed with `Torch not compiled with CUDA`
-  (older runs before CUDA was fixed) are recorded as processed and will never be retried.
-  Fix: add a `--retry-failed` CLI flag (or tray menu item) that clears failed entries from
-  `pipeline_state.json` so they are re-queued on next startup.
+- [x] **Failed files stuck in state** — Files that fail the pipeline are now recorded in a
+  `failed` list in `pipeline_state.json` and skipped by the startup scan. Re-queue them
+  with `python main.py --retry-failed`.
 
 ### Low Priority / Suppress
 
-- [ ] **HuggingFace symlinks warning on Windows** — Windows doesn't support symlinks without
-  Developer Mode. Cache still works, just uses more disk space. Fix: set
-  `HF_HUB_DISABLE_SYMLINKS_WARNING=1` in the subprocess environment in `tray.py`.
+- [x] **HuggingFace symlinks warning on Windows** — Fixed: `HF_HUB_DISABLE_SYMLINKS_WARNING=1`
+  set in tray subprocess env in `tray.py`.
 
-- [ ] **pyannote `std() degrees of freedom <= 0`** — fires on very short audio segments
-  inside pyannote internals; not actionable. Fix: add a targeted `warnings.filterwarnings`
+- [x] **pyannote `std() degrees of freedom <= 0`** — Fixed: targeted `warnings.filterwarnings`
   suppress in `transcriber.py`.
 
-- [ ] **Lightning checkpoint upgrade message** — one-time cosmetic noise from pyannote's
-  bundled checkpoint being on an old Lightning schema. Fix: run the upgrade command once,
-  or suppress the log level for `lightning.pytorch.utilities.migration.utils`.
+- [x] **Lightning checkpoint upgrade message** — Fixed: log level for
+  `lightning.pytorch.utilities.migration.utils` set to ERROR in `main.py`.

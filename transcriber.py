@@ -24,7 +24,16 @@ from __future__ import annotations
 
 import logging
 import os
+import warnings
 from pathlib import Path
+
+# Suppress noisy-but-harmless third-party warnings that surface on every run.
+# torchcodec ships its own FFmpeg DLLs; the "not found" warning is cosmetic —
+# whisperx falls back silently and works correctly.
+warnings.filterwarnings("ignore", message=".*torchcodec.*")
+warnings.filterwarnings("ignore", message=".*libtorchcodec.*")
+# pyannote fires this on very short audio segments; not actionable.
+warnings.filterwarnings("ignore", message=".*degrees of freedom <= 0.*", category=RuntimeWarning)
 
 logger = logging.getLogger(__name__)
 

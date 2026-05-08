@@ -10,6 +10,9 @@ content (same name, different mtime) is correctly treated as unprocessed.
 Public interface:
   is_processed(path)   -> bool
   mark_processed(path) -> None
+  is_failed(path)      -> bool
+  mark_failed(path)    -> None
+  clear_failed()       -> None   (called via --retry-failed flag)
 """
 
 from __future__ import annotations
@@ -52,7 +55,51 @@ def mark_processed(path: Path) -> None:
         entry = {"path": key[0], "mtime": key[1]}
         if entry not in data["processed"]:
             data["processed"].append(entry)
+        # A file that now succeeds should not stay in the failed list.
+        data["failed"] = [e for e in data.get("failed", []) if e != entry]
+        _save_raw(data)
+
+
+def is_failed(path: Path) -> bool:
+    """Return True if this file previously failed all pipeline attempts."""
+    try:
+        key = _make_key(path)
+    except OSError:
+        return False
+    data = _load_raw()
+    return {"path": key[0], "mtime": key[1]} in data.get("failed", [])
+
+
+def mark_failed(path: Path) -> None:
+    """
+    Record *path* as permanently failed so the startup scan skips it.
+
+    Use --retry-failed (or clear_failed()) to re-queue these files.
+    """
+    try:
+        key = _make_key(path)
+    except OSError as exc:
+        logger.warning("Could not stat %s for failure tracking: %s", path.name, exc)
+        return
+
+    with _lock:
+        data = _load_raw()
+        entry = {"path": key[0], "mtime": key[1]}
+        failed = data.setdefault("failed", [])
+        if entry not in failed:
+            failed.append(entry)
             _save_raw(data)
+        logger.info("Marked as failed (will not retry unless --retry-failed): %s", path.name)
+
+
+def clear_failed() -> None:
+    """Remove all failed-file records so they are re-queued on next startup scan."""
+    with _lock:
+        data = _load_raw()
+        count = len(data.get("failed", []))
+        data["failed"] = []
+        _save_raw(data)
+    logger.info("Cleared %d failed-file record(s) from state", count)
 
 
 # ---------------------------------------------------------------------------
